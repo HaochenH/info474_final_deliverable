@@ -19,18 +19,25 @@ let SITE_TITLE = "Some Title";
 
 const title = d3.select("#chart-title");
 const title_city = d3.select("#city");
-const chart = d3.select("#chart");
-let city_table = d3.select("#city_table");
-let city_table_data;
+const chartContainer = d3.select("#chart");
 let svgWidth = d3.select("#chart").attr("width");
 let svgHeight = d3.select("#chart").attr("height");
-let chartPaddingX = 30;
-let chartPaddingT = 80;
-let chartPaddingB = 80;
-let chartHeight = svgHeight - chartPaddingT - chartPaddingB;
-let chartWidth = svgWidth - chartPaddingX * 2;
+let paddings = { top: 40, right: 40, bottom: 40, left: 40 };
+let chartHeight = svgHeight - paddings.top - paddings.bottom;
+let chartWidth = svgWidth - paddings.left - paddings.right;
+
+const chart = chartContainer
+    .append("g")
+    .attr("width", chartWidth)
+    .attr("height", chartHeight)
+    .attr("transform", "translate(" + paddings.left + "," + paddings.top + ")");
+
+let city_table = d3.select("#city_table");
+let city_table_data;
 let xScale, xAxis;
 let yScale, yAxis;
+
+const selected_city_indexes = [0];
 
 function read_one_city_data(city_data_file_name) {
     d3.csv(city_data_file_name).then(function (data) {
@@ -58,29 +65,43 @@ const read_city_data = async () => {
     }));
 };
 
-const set_title_using_city = (city_index) => {
-    let city_name = city_data[city_index]["full_name"];
-    let state = city_data[city_index]["state"];
-    let color = city_data[city_index]["color"];
-    title_city
-        .text(`${city_name}, ${state}`)
-        .classed('font-semibold', true)
-        .style("color", color);
+const set_title_using_city = (selected_city_indexes) => {
+    console.log("set title using city", selected_city_indexes);
+    let s = selected_city_indexes
+        .map((i) => {
+            let color = city_data[i]["color"];
+            let city_name = city_data[i]["full_name"];
+            let state = city_data[i]["state"];
+            return `<span style="color: ${color}">${city_name}, ${state}</span>`;
+        })
+        .join(", ");
+    title_city.classed("font-semibold", true).html(s);
 };
 
-const update_data_by_city = (city_index) => {
-    console.log("update city: ", city_index);
-    console.log(city_data[city_index]);
-    set_title_using_city(city_index);
+const update_chart = (selected_city_indexes) => {
+    console.log("update city table", selected_city_indexes);
+
+    set_title_using_city(selected_city_indexes);
+
     city_table
         .selectAll(".city-table-row")
-        .data([city_data[city_index]])
+        .data(selected_city_indexes.map((i) => city_data[i]))
         .style("background-color", "blue");
 
-    render_chart(city_index);
+    render_chart(selected_city_indexes);
 };
 
 const render_city_table = (city_data) => {
+    const on_table_row_click = (d, i) => {
+        if (selected_city_indexes.indexOf(i) !== -1) {
+            selected_city_indexes = selected_city_indexes.filter(
+                (x) => x !== i
+            );
+        } else {
+            selected_city_indexes.push(i);
+        }
+        update_chart(selected_city_indexes);
+    };
     city_table = city_table
         .selectAll("div")
         .data(city_data)
@@ -93,47 +114,52 @@ const render_city_table = (city_data) => {
         .html(function (d) {
             return `<div class="w-3/4">${d["full_name"]}</div><div>${d["state"]}</div>`;
         })
-        .on("click", function (d, i) {
-            update_data_by_city(i);
-        });
+        .on("click", on_table_row_click);
 };
 
-const render_chart = (city_index) => {
-    let current_city_info = city_data[city_index];
-
-    console.log("render chart");
-    console.log("chart data", current_city_info.data);
-
+const render_chart = (selected_city_indexes) => {
+    d3.selectAll(".xAxis").remove();
+    d3.selectAll(".yAxis").remove();
     xScale = d3
         .scaleTime()
         .domain([
-            current_city_info.data[0]["date"],
-            current_city_info.data[current_city_info.data.length - 1]["date"],
+            city_data[0].data[0]["date"],
+            city_data[0].data[city_data[0].data.length - 1]["date"],
         ])
         .range([0, chartWidth]);
-    yScale = d3
-        .scaleLinear()
-        .domain([
-            0,
-            d3.max(current_city_info.data, function (d) {
-                return d["actual_mean_temp"];
-            }),
-        ])
-        .range([chartHeight, 0]);
+    yScale = d3.scaleLinear().domain([-10, 120]).range([chartHeight, 0]);
+
     xAxis = d3.axisBottom(xScale);
     yAxis = d3.axisLeft(yScale);
-
-    console.log("date x", xScale());
+    chart
+        .append("g")
+        .call(xAxis)
+        .attr("transform", `translate(0, ${chartHeight})`)
+        .attr("class", "xAxis");
+    chart.append("g").call(yAxis).attr("class", "yAxis");
 
     let line = d3
         .line()
         .x((d) => xScale(d["date"]))
         .y((d) => yScale(d["actual_mean_temp"]));
 
-    chart.append("path")
-        .attr("d", line(current_city_info.data))
-        .attr('stroke', current_city_info.color)
-        .attr('fill', 'none')
+    selected_city_indexes.forEach((city_index) => {
+        let current_city_info = city_data[city_index];
+
+        console.log("render chart");
+        console.log("chart data", current_city_info.data);
+
+        chart.selectAll("path.line").data([current_city_info.data]).exit().remove();
+
+        chart
+            .selectAll("path.line")
+            .data([current_city_info.data])
+            .enter()
+            .append("path")
+            .attr("d", line(current_city_info.data))
+            .attr("stroke", current_city_info.color)
+            .attr("fill", "none");
+    });
 };
 
 (async () => {
@@ -141,5 +167,5 @@ const render_chart = (city_index) => {
     console.log("city data", city_data);
     render_city_table(city_data);
 
-    update_data_by_city(0);
+    update_chart(selected_city_indexes);
 })();
