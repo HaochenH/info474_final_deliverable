@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Document</title>
+    <style>
+    </style>
+</head>
+<body class="p-6 flex gap-6">
+    <div class="flex flex-col align-center">
+        <span class="inline-block text-center text-2xl text-slate-900 ml-52 mb-4" id="chart-title">
+            The mimimum temperature of <span id="city" class=""></span> since 1880 weather
+        </span>
+        <div class="flex-1 flex">
+            <aside class="flex flex-col w-52 mr-4" id="city_table"></aside>
+            <svg id="chart" class="flex-1 border border-slate-700" width="800" height="500"></svg>
+        </div>
+    </div>
+
+</body>
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <script src="./script.js"></script>
+</html>
