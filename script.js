@@ -86,13 +86,12 @@ const update_chart = (selected_city_indexes) => {
     city_table
         .selectAll(".city-table-row")
         .filter((d, i) => selected_city_indexes.indexOf(i) === -1)
-        .classed('bg-slate-200', false)
+        .classed("bg-slate-200", false);
 
     city_table
         .selectAll(".city-table-row")
         .filter((d, i) => selected_city_indexes.indexOf(i) !== -1)
-        .classed('bg-slate-200', true)
-
+        .classed("bg-slate-200", true);
 
     render_chart(selected_city_indexes);
 };
@@ -118,7 +117,7 @@ const render_city_table = (city_data) => {
             "city-table-row px-3 py-1.5 flex items-center hover:cursor-pointer hover:bg-gray-200 transition-all duration-300 rounded-lg hover:shadow-md"
         )
         .html(function (d) {
-            return `<div class="w-3 h-3 mr-3 rounded-full bg-[${d['color']}]"></div><div class="w-3/4">${d["full_name"]}</div><div>${d["state"]}</div>`;
+            return `<div class="w-3 h-3 mr-3 rounded-full bg-[${d["color"]}]"></div><div class="w-3/4">${d["full_name"]}</div><div>${d["state"]}</div>`;
         })
         .on("click", on_table_row_click);
 };
@@ -150,14 +149,14 @@ const render_chart = (selected_city_indexes) => {
         .y((d) => yScale(d["actual_mean_temp"]));
 
     const selected_city_data = selected_city_indexes.map((i) => city_data[i]);
-    console.log('selected city data', selected_city_data)
+    console.log("selected city data", selected_city_data);
     chart.selectAll("path.line").data(selected_city_data).exit().remove();
     chart
         .selectAll("path.line")
         .data(selected_city_data)
         .enter()
         .append("path")
-        .attr('class', 'line')
+        .attr("class", "line")
         .attr("d", (d) => line(d.data))
         .attr("stroke", (d) => d.color)
         .attr("fill", "none");
