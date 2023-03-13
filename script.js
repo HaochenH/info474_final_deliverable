@@ -1,16 +1,16 @@
 const CITY_DATA_NAME = "./weather_data/cities-gps.csv";
 const CITY_TABLE_NAME_COLUMN = "City Name ABR";
 const EXTRA_CITY_DATA = [
-    { full_name: "Seattle", state: "WA", color: "#b45309" },
+    { full_name: "Seattle", state: "WA", color: "#c05457" },
     { full_name: "New York City", state: "NY", color: "#047857" },
     { full_name: "Houston", state: "TX", color: "#4f46e5" },
-    { full_name: "Charlotte", state: "NC", color: "#be185d" },
-    { full_name: "Los Angeles", state: "CA", color: "#7e22ce" },
-    { full_name: "Indianapolis", state: "IN", color: "#b91c1c" },
+    { full_name: "Charlotte", state: "NC", color: "#4fa5b7" },
+    { full_name: "Los Angeles", state: "CA", color: "#a929ff" },
+    { full_name: "Indianapolis", state: "IN", color: "#733234" },
     { full_name: "Jacksonville", state: "FL", color: "#2563eb" },
     { full_name: "Chicago", state: "IL", color: "#15803d" },
-    { full_name: "Philadelphia", state: "PA", color: "#be123c" },
-    { full_name: "Phoenix", state: "AZ", color: "#c2410c" },
+    { full_name: "Philadelphia", state: "PA", color: "#a8a8a8" },
+    { full_name: "Phoenix", state: "AZ", color: "#d9a984" },
 ];
 
 let city_data;
@@ -104,6 +104,7 @@ const render_city_table = (city_data) => {
         }
         update_chart(selected_city_indexes);
     };
+    
     city_table
         .selectAll(".city-table-row")
         .data(city_data)
