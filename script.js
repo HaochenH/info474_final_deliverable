@@ -22,7 +22,7 @@ const title_city = d3.select("#city");
 const chartContainer = d3.select("#chart");
 let svgWidth = d3.select("#chart").attr("width");
 let svgHeight = d3.select("#chart").attr("height");
-let paddings = { top: 40, right: 40, bottom: 40, left: 40 };
+let paddings = { top: 20, right: 25, bottom: 50, left: 50 };
 let chartHeight = svgHeight - paddings.top - paddings.bottom;
 let chartWidth = svgWidth - paddings.left - paddings.right;
 
@@ -39,14 +39,7 @@ let yScale, yAxis;
 
 let selected_city_indexes = [0];
 
-function read_one_city_data(city_data_file_name) {
-    d3.csv(city_data_file_name).then(function (data) {
-        city_data = data;
-        console.log("cities", city_data);
-    });
-    return;
-}
-
+// read all city data
 const read_city_data = async () => {
     let city_table = await d3.csv(CITY_DATA_NAME);
 
@@ -65,8 +58,9 @@ const read_city_data = async () => {
     }));
 };
 
+// set color for each city on the title
 const set_title_using_city = (selected_city_indexes) => {
-    console.log("set title using city", selected_city_indexes);
+    // console.log("set title using city", selected_city_indexes);
     let s = selected_city_indexes
         .map((i) => {
             let color = city_data[i]["color"];
@@ -79,7 +73,7 @@ const set_title_using_city = (selected_city_indexes) => {
 };
 
 const update_chart = (selected_city_indexes) => {
-    console.log("update city table", selected_city_indexes);
+    // console.log("update city table", selected_city_indexes);
 
     set_title_using_city(selected_city_indexes);
 
@@ -96,14 +90,17 @@ const update_chart = (selected_city_indexes) => {
     render_chart(selected_city_indexes);
 };
 
+// render city table on the left
 const render_city_table = (city_data) => {
     const on_table_row_click = (d, i) => {
         if (selected_city_indexes.indexOf(i) !== -1) {
             selected_city_indexes = selected_city_indexes.filter(
                 (x) => x !== i
+                // use filter to remove the element from array
             );
         } else {
             selected_city_indexes.push(i);
+            // use push to add the element to array
         }
         update_chart(selected_city_indexes);
     };
@@ -122,9 +119,12 @@ const render_city_table = (city_data) => {
         .on("click", on_table_row_click);
 };
 
+// render chart
 const render_chart = (selected_city_indexes) => {
     d3.selectAll(".xAxis").remove();
     d3.selectAll(".yAxis").remove();
+
+    // create scales
     xScale = d3
         .scaleTime()
         .domain([
@@ -134,6 +134,7 @@ const render_chart = (selected_city_indexes) => {
         .range([0, chartWidth]);
     yScale = d3.scaleLinear().domain([-10, 120]).range([chartHeight, 0]);
 
+    // add axes
     xAxis = d3.axisBottom(xScale);
     yAxis = d3.axisLeft(yScale);
     chart
@@ -148,9 +149,12 @@ const render_chart = (selected_city_indexes) => {
         .x((d) => xScale(d["date"]))
         .y((d) => yScale(d["actual_mean_temp"]));
 
+    //remove old lines
     const selected_city_data = selected_city_indexes.map((i) => city_data[i]);
-    console.log("selected city data", selected_city_data);
+    // console.log("selected city data", selected_city_data);
     chart.selectAll("path.line").data(selected_city_data).exit().remove();
+
+    //add new lines
     chart
         .selectAll("path.line")
         .data(selected_city_data)
@@ -160,11 +164,35 @@ const render_chart = (selected_city_indexes) => {
         .attr("d", (d) => line(d.data))
         .attr("stroke", (d) => d.color)
         .attr("fill", "none");
+
+    //remove old labels
+    chart.selectAll(".legend").remove();
+
+    //add x axis label
+    chart
+        .append("text")
+        .attr("transform", `translate(${chartWidth / 2}, ${chartHeight + 35})`)
+        .attr("text-anchor", "middle")
+        .text("Date")
+        .attr("font-size", "13px")
+        .attr("class", "x-axis legend");
+
+    //add y axis label
+    chart
+        .append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("y", 0 - paddings.left + 5)
+        .attr("x", 0 - chartHeight / 2)
+        .attr("dy", "1em")
+        .attr("text-anchor", "middle")
+        .text("Temperature (F)")
+        .attr("font-size", "13px")
+        .attr("class", "y-axis legend");
 };
 
 (async () => {
     city_data = await read_city_data();
-    console.log("city data", city_data);
+    // console.log("city data", city_data);
     render_city_table(city_data);
 
     update_chart(selected_city_indexes);
